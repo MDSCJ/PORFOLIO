@@ -1,0 +1,7 @@
+title: Futuristic Portfolio
+description: Showcasing Graphic Design Artworks
+theme: minima
+plugins:
+  - jekyll-feed
+baseurl: ""
+url: ""
