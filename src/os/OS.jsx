@@ -61,23 +61,28 @@ function Shell() {
   }, [shell])
 
   return (
-    <div className="relative h-full w-full overflow-hidden" onPointerDown={() => shell.flyout && shell.closeFlyout()}>
-      <Desktop />
+    <div className="relative h-full w-full overflow-hidden bg-black" onPointerDown={() => shell.flyout && shell.closeFlyout()}>
+      {/* The desktop only exists once signed in, so it can't flash through the boot/lock screens as they fade in. */}
+      {shell.power === 'desktop' && (
+        <>
+          <Desktop />
 
-      <AnimatePresence>
-        {wm.windows.map((w) => (
-          <Window key={w.id} win={w} />
-        ))}
-      </AnimatePresence>
+          <AnimatePresence>
+            {wm.windows.map((w) => (
+              <Window key={w.id} win={w} />
+            ))}
+          </AnimatePresence>
 
-      <AnimatePresence>
-        {(shell.flyout === 'start' || shell.flyout === 'search') && <StartMenu key="start" focusSearch={shell.flyout === 'search'} />}
-        {shell.flyout === 'quick' && <QuickSettings key="quick" />}
-        {shell.flyout === 'calendar' && <CalendarFlyout key="calendar" />}
-      </AnimatePresence>
+          <AnimatePresence>
+            {(shell.flyout === 'start' || shell.flyout === 'search') && <StartMenu key="start" focusSearch={shell.flyout === 'search'} />}
+            {shell.flyout === 'quick' && <QuickSettings key="quick" />}
+            {shell.flyout === 'calendar' && <CalendarFlyout key="calendar" />}
+          </AnimatePresence>
 
-      <Toasts />
-      <Taskbar />
+          <Toasts />
+          <Taskbar />
+        </>
+      )}
 
       <AnimatePresence>
         {shell.power === 'boot' && <BootScreen key="boot" />}
