@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Syncopate', 'Space Grotesk', sans-serif;
+  --color-neon-cyan: #22d3ee;
+  --color-neon-purple: #a855f7;
+  --color-neon-blue: #3b82f6;
+  --color-void: #05060a;
+}
+
+/* Frosted glass pane with a faint neon edge. */
+@utility glass {
+  background: rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 0 24px -8px rgb(34 211 238 / 0.35);
+}
+
+@utility glow-hover {
+  transition:
+    box-shadow 0.35s ease,
+    border-color 0.35s ease,
+    transform 0.35s ease;
+  &:hover {
+    border-color: rgb(34 211 238 / 0.6);
+    box-shadow:
+      0 0 0 1px rgb(34 211 238 / 0.4),
+      0 0 32px -4px rgb(34 211 238 / 0.55),
+      0 0 64px -12px rgb(168 85 247 / 0.6);
+    transform: translateY(-4px);
+  }
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--color-void);
+  color: #e5f6ff;
+  font-family: var(--font-sans);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(34 211 238 / 0.35) transparent;
+}
+
+/* Lighter blur on phones: cheaper to composite while scrolling. */
+@media (max-width: 767px) {
+  .glass {
+    backdrop-filter: blur(10px) saturate(130%);
+  }
+}
+
+/* Cursor-revealed grid (ui/CursorGrid.jsx). */
+.cursor-grid {
+  --mx: -1000px;
+  --my: -1000px;
+  background-image:
+    linear-gradient(rgb(34 211 238 / 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 211 238 / 0.14) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(200px circle at var(--mx) var(--my), black, transparent 75%);
+  -webkit-mask-image: radial-gradient(200px circle at var(--mx) var(--my), black, transparent 75%);
+}
+
+/* Auto-scrolling skill rows (ui/Skills.jsx). */
+.marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--duration, 30s) linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    mask-image: none;
+  }
+  .marquee-track {
+    animation: none;
+    width: auto;
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+  .marquee-dup {
+    display: none;
+  }
+}
+
+/* Hero name: one-shot glitch on load (ui/Hero.jsx). Each animation runs once and holds its end state. */
+.glitch-name {
+  --stroke: 1.5px;
+  position: relative;
+  display: block;
+  width: fit-content;
+  color: transparent;
+  -webkit-text-stroke: var(--stroke) var(--color-neon-cyan);
+  animation:
+    name-flicker 0.5s steps(1) var(--delay) both,
+    name-fill 0.7s ease-out calc(var(--delay) + 1.35s) forwards;
+}
+.glitch-name::before,
+.glitch-name::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  pointer-events: none;
+  opacity: 0;
+}
+.glitch-name::before {
+  -webkit-text-stroke: var(--stroke) var(--color-neon-purple);
+  animation: glitch-a 1.4s steps(1) var(--delay) forwards;
+}
+.glitch-name::after {
+  -webkit-text-stroke: var(--stroke) var(--color-neon-blue);
+  animation: glitch-b 1.4s steps(1) var(--delay) forwards;
+}
+
+@keyframes name-flicker {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  25% { opacity: 0.2; }
+  40% { opacity: 1; }
+  55% { opacity: 0.5; }
+  70%, 100% { opacity: 1; }
+}
+@keyframes name-fill {
+  to {
+    color: var(--fill);
+    -webkit-text-stroke-color: transparent;
+    text-shadow: 0 0 28px rgb(34 211 238 / 0.35);
+  }
+}
+@keyframes glitch-a {
+  0% { opacity: 1; clip-path: inset(8% 0 72% 0); transform: translate(-7px, 0); }
+  10% { clip-path: inset(62% 0 18% 0); transform: translate(6px, 0); }
+  20% { clip-path: inset(30% 0 52% 0); transform: translate(-4px, 0); }
+  30% { clip-path: inset(80% 0 4% 0); transform: translate(8px, 0); }
+  42% { clip-path: inset(14% 0 60% 0); transform: translate(-5px, 0); }
+  55% { clip-path: inset(46% 0 36% 0); transform: translate(3px, 0); }
+  68% { clip-path: inset(70% 0 12% 0); transform: translate(-2px, 0); }
+  80% { clip-path: inset(0 0 0 0); transform: translate(1px, 0); }
+  90%, 100% { opacity: 0; clip-path: inset(0 0 0 0); transform: none; }
+}
+@keyframes glitch-b {
+  0% { opacity: 1; clip-path: inset(70% 0 10% 0); transform: translate(6px, 0); }
+  12% { clip-path: inset(20% 0 64% 0); transform: translate(-8px, 0); }
+  24% { clip-path: inset(50% 0 30% 0); transform: translate(5px, 0); }
+  36% { clip-path: inset(6% 0 82% 0); transform: translate(-3px, 0); }
+  48% { clip-path: inset(38% 0 44% 0); transform: translate(7px, 0); }
+  60% { clip-path: inset(84% 0 2% 0); transform: translate(-4px, 0); }
+  74% { clip-path: inset(0 0 0 0); transform: translate(-1px, 0); }
+  86%, 100% { opacity: 0; clip-path: inset(0 0 0 0); transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch-name {
+    animation: none;
+    color: var(--fill);
+    -webkit-text-stroke: 0;
+  }
+  .glitch-name::before,
+  .glitch-name::after {
+    display: none;
+  }
+}
