@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { MathUtils } from 'three'
 import { sectionProgress, trackSectionProgress } from '../../lib/sectionProgress'
 
@@ -36,9 +36,23 @@ export default function ScrollRig({ children }) {
   const scrollGroup = useRef()
   const mouseGroup = useRef()
 
+  const invalidate = useThree((st) => st.invalidate)
+
   useEffect(trackSectionProgress, [])
 
-  useFrame((state, delta) => {
+  // Phones render on demand (see Scene), so wake the loop whenever the page scrolls or resizes.
+  useEffect(() => {
+    window.addEventListener('scroll', invalidate, { passive: true })
+    window.addEventListener('resize', invalidate)
+    return () => {
+      window.removeEventListener('scroll', invalidate)
+      window.removeEventListener('resize', invalidate)
+    }
+  }, [invalidate])
+
+  useFrame((state, rawDelta) => {
+    // After an idle period on-demand frames report a huge delta; cap it so motion stays smooth.
+    const delta = Math.min(rawDelta, 1 / 30)
     const mobile = state.size.width < MOBILE_BREAKPOINT
     const keyframes = mobile ? MOBILE_KEYFRAMES : DESKTOP_KEYFRAMES
     const t = MathUtils.clamp(sectionProgress.t, 0, keyframes.length - 1)
@@ -46,25 +60,34 @@ export default function ScrollRig({ children }) {
     const f = MathUtils.smootherstep(t - i, 0, 1)
     const a = keyframes[i]
     const b = keyframes[i + 1]
+    let moving = false
+    const approach = (current, target) => {
+      const next = MathUtils.damp(current, target, DAMPING, delta)
+      if (Math.abs(next - target) > 1e-3) moving = true
+      return next
+    }
 
     const g = scrollGroup.current
     for (let k = 0; k < 3; k++) {
-      const target = MathUtils.lerp(a.position[k], b.position[k], f)
-      g.position.setComponent(k, MathUtils.damp(g.position.getComponent(k), target, DAMPING, delta))
+      g.position.setComponent(k, approach(g.position.getComponent(k), MathUtils.lerp(a.position[k], b.position[k], f)))
     }
-    g.rotation.y = MathUtils.damp(g.rotation.y, MathUtils.lerp(a.rotationY, b.rotationY, f), DAMPING, delta)
-    g.scale.setScalar(MathUtils.damp(g.scale.x, MathUtils.lerp(a.scale, b.scale, f), DAMPING, delta))
+    g.rotation.y = approach(g.rotation.y, MathUtils.lerp(a.rotationY, b.rotationY, f))
+    g.scale.setScalar(approach(g.scale.x, MathUtils.lerp(a.scale, b.scale, f)))
 
     const canvas = state.gl.domElement
     const targetOpacity = mobile ? MathUtils.lerp(1, MOBILE_BACKDROP_OPACITY, MathUtils.clamp(t * 1.5, 0, 1)) : 1
-    canvas.style.opacity = MathUtils.damp(Number(canvas.style.opacity || 1), targetOpacity, DAMPING, delta).toFixed(3)
+    const opacity = approach(Number(canvas.style.opacity || 1), targetOpacity).toFixed(3)
+    if (canvas.style.opacity !== opacity) canvas.style.opacity = opacity
 
     // Touch devices have no hover cursor; a tap would leave the model stuck looking at it.
     const px = mobile ? 0 : state.pointer.x
     const py = mobile ? 0 : state.pointer.y
     const m = mouseGroup.current
-    m.rotation.y = MathUtils.damp(m.rotation.y, px * MOUSE_YAW, DAMPING, delta)
-    m.rotation.x = MathUtils.damp(m.rotation.x, -py * MOUSE_PITCH, DAMPING, delta)
+    m.rotation.y = approach(m.rotation.y, px * MOUSE_YAW)
+    m.rotation.x = approach(m.rotation.x, -py * MOUSE_PITCH)
+
+    // Keep frames coming only until everything has settled.
+    if (moving) state.invalidate()
   })
 
   return (

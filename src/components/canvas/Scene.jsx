@@ -3,7 +3,8 @@ import { Float, Sparkles, Stars } from '@react-three/drei'
 import Model from './Model'
 import ScrollRig from './ScrollRig'
 
-// Phones get fewer particles and a lower pixel ratio to keep scrolling smooth.
+// Phones render on demand (only while scrolling/animating), with no ambient particle animation and a lower
+// pixel ratio. A constantly redrawing canvas under blurred glass is what makes mobile scrolling stall.
 const isSmallScreen = typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
 
 function Lights() {
@@ -22,6 +23,7 @@ export default function Scene() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0">
       <Canvas
+        frameloop={isSmallScreen ? 'demand' : 'always'}
         camera={{ position: [0, 0, 6], fov: 45 }}
         dpr={isSmallScreen ? [1, 1.5] : [1, 2]}
         gl={{ antialias: !isSmallScreen, powerPreference: 'high-performance' }}
@@ -33,11 +35,15 @@ export default function Scene() {
         <fog attach="fog" args={['#05060a', 6, 16]} />
         <Lights />
         <Stars radius={60} depth={40} count={isSmallScreen ? 1000 : 2500} factor={3} fade speed={0.6} />
-        <Sparkles count={isSmallScreen ? 25 : 60} scale={[10, 6, 4]} size={2} speed={0.3} color="#22d3ee" />
+        {!isSmallScreen && <Sparkles count={60} scale={[10, 6, 4]} size={2} speed={0.3} color="#22d3ee" />}
         <ScrollRig>
-          <Float speed={1.5} rotationIntensity={0.15} floatIntensity={0.4}>
+          {isSmallScreen ? (
             <Model />
-          </Float>
+          ) : (
+            <Float speed={1.5} rotationIntensity={0.15} floatIntensity={0.4}>
+              <Model />
+            </Float>
+          )}
         </ScrollRig>
       </Canvas>
     </div>

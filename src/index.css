@@ -47,10 +47,12 @@ html {
   scrollbar-color: rgb(34 211 238 / 0.35) transparent;
 }
 
-/* Lighter blur on phones: cheaper to composite while scrolling. */
+/* Phones: no live blur. Re-blurring the 3D canvas behind every card each frame is what stalls scrolling,
+   so glass becomes a denser frosted tint instead. */
 @media (max-width: 767px) {
   .glass {
-    backdrop-filter: blur(10px) saturate(130%);
+    backdrop-filter: none;
+    background: rgb(14 17 27 / 0.86);
   }
 }
 

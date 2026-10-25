@@ -10,6 +10,13 @@ import { DisplayFilters } from '../os/OS'
 import { PlatformContext, useSettings, useWindows, WindowProvider } from '../os/store'
 import { ANDROID_APPS, androidLabel, DOCK, HOME_GRID } from './apps'
 import androidWallpaper from './assets/wallpapers/android.jpg'
+import AndroidSettings from './apps/AndroidSettings'
+import { BackContext } from './back'
+
+// Apps with an Android-specific implementation. `ownHeader` apps draw their own top app bar.
+const ANDROID_OVERRIDES = {
+  settings: { component: AndroidSettings, ownHeader: true },
+}
 
 // Android has its own portrait wallpaper (the Windows ones are landscape).
 function PhoneWallpaper() {
@@ -324,7 +331,8 @@ function Lock({ onUnlock }) {
 
 function AppScreen({ win }) {
   const app = apps[win.appId]
-  const AppComponent = app.component
+  const override = ANDROID_OVERRIDES[win.appId]
+  const AppComponent = override?.component ?? app.component
   const subtitle = win.appId === 'notepad' ? win.props.fileName : null
   return (
     <motion.div
@@ -336,13 +344,15 @@ function AppScreen({ win }) {
       style={{ top: STATUS_H, bottom: NAV_H }}
       className="absolute inset-x-0 z-20 flex flex-col overflow-hidden bg-solid text-fg"
     >
-      <header className="flex h-14 shrink-0 items-center gap-3 px-4">
-        <app.Icon size={22} />
-        <div className="min-w-0">
-          <p className="truncate text-lg leading-tight">{androidLabel(win.appId)}</p>
-          {subtitle && <p className="truncate text-xs text-fg-2">{subtitle}</p>}
-        </div>
-      </header>
+      {!override?.ownHeader && (
+        <header className="flex h-14 shrink-0 items-center gap-3 px-4">
+          <app.Icon size={22} />
+          <div className="min-w-0">
+            <p className="truncate text-lg leading-tight">{androidLabel(win.appId)}</p>
+            {subtitle && <p className="truncate text-xs text-fg-2">{subtitle}</p>}
+          </div>
+        </header>
+      )}
       <div className="relative min-h-0 flex-1">
         <AppComponent win={win} focused />
       </div>
@@ -367,6 +377,7 @@ function Launcher() {
   ])
   const [headsUp, setHeadsUp] = useState(null)
   const swipe = useRef(null)
+  const appBack = useRef(null)
 
   useEffect(() => {
     if (phase !== 'home') return
@@ -387,6 +398,7 @@ function Launcher() {
 
   const open = (appId) => {
     setOverlay(null)
+    setHeadsUp(null)
     launch(wm, appId)
   }
   const home = () => {
@@ -395,6 +407,8 @@ function Launcher() {
   }
   const back = () => {
     if (overlay) return setOverlay(null)
+    // Let the app handle Back first (e.g. Settings sub-pages); otherwise close it.
+    if (appBack.current?.()) return
     if (active) wm.close(active.id)
   }
 
@@ -441,7 +455,9 @@ function Launcher() {
         </div>
       </div>
 
-      <AnimatePresence>{active && <AppScreen key={active.id} win={active} />}</AnimatePresence>
+      <BackContext.Provider value={appBack}>
+        <AnimatePresence>{active && <AppScreen key={active.id} win={active} />}</AnimatePresence>
+      </BackContext.Provider>
 
       <AnimatePresence>
         {(overlay === 'drawer' || overlay === 'search') && <Drawer key="drawer" focusSearch={overlay === 'search'} onOpen={open} onClose={() => setOverlay(null)} />}
