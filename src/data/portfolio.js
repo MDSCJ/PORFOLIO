@@ -99,10 +99,10 @@ export const achievements = [
 ]
 
 export const education = [
-  { title: 'B.Sc. Engineering — Computer Science & Engineering', detail: 'University of Moratuwa · In progress' },
-  { title: 'G.C.E. Advanced Level', detail: 'A grades across subjects · MR/Rahula College' },
-  { title: 'G.C.E. Ordinary Level', detail: "8 A's and a B · MR/Mahinda Rajapaksa College" },
-]
+  { title: 'B.Sc. Engineering — Computer Science & Engineering', institution: 'University of Moratuwa', note: 'In progress' },
+  { title: 'G.C.E. Advanced Level', institution: 'MR/Rahula College', note: 'A grades across subjects' },
+  { title: 'G.C.E. Ordinary Level', institution: 'MR/Mahinda Rajapaksa College', note: "8 A's and a B" },
+].map((e) => ({ ...e, detail: `${e.institution} · ${e.note}` }))
 
 export const contact = {
   email: 'm.d.s.chamath@gmail.com',

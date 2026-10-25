@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Theme tokens. Components use the Tailwind colours below (bg-surface, text-fg, …), so switching
+   data-theme on <html> re-skins everything. --accent is set at runtime from Settings. */
+:root {
+  --accent: #4cc2ff;
+  --accent-fg: #00131f;
+  --os-text: #1b1b1b;
+  --os-text-2: #5c5c5c;
+  --os-window: rgb(243 243 243 / 0.86);
+  --os-surface: rgb(255 255 255 / 0.7);
+  --os-solid: #f9f9f9;
+  --os-hover: rgb(0 0 0 / 0.05);
+  --os-active: rgb(0 0 0 / 0.08);
+  --os-border: rgb(0 0 0 / 0.08);
+  --os-taskbar: rgb(238 242 247 / 0.82);
+  --os-flyout: rgb(240 243 247 / 0.86);
+  --os-input: rgb(255 255 255 / 0.8);
+  --os-shadow: 0 8px 32px rgb(0 0 0 / 0.18), 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+
+[data-theme='dark'] {
+  --accent: #4cc2ff;
+  --os-text: #ffffff;
+  --os-text-2: #c5c5c5;
+  --os-window: rgb(32 32 32 / 0.84);
+  --os-surface: rgb(255 255 255 / 0.05);
+  --os-solid: #272727;
+  --os-hover: rgb(255 255 255 / 0.06);
+  --os-active: rgb(255 255 255 / 0.09);
+  --os-border: rgb(255 255 255 / 0.08);
+  --os-taskbar: rgb(28 28 28 / 0.82);
+  --os-flyout: rgb(36 36 36 / 0.86);
+  --os-input: rgb(255 255 255 / 0.06);
+  --os-shadow: 0 8px 32px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.07);
+}
+
+@theme inline {
+  --font-sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Roboto, sans-serif;
+  --font-display: 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Mono', 'Cascadia Code', Consolas, 'SF Mono', Menlo, monospace;
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-fg: var(--os-text);
+  --color-fg-2: var(--os-text-2);
+  --color-window: var(--os-window);
+  --color-surface: var(--os-surface);
+  --color-solid: var(--os-solid);
+  --color-hover: var(--os-hover);
+  --color-active: var(--os-active);
+  --color-line: var(--os-border);
+  --color-taskbar: var(--os-taskbar);
+  --color-flyout: var(--os-flyout);
+  --color-input: var(--os-input);
+}
+
+/* Mica / acrylic material. */
+@utility acrylic {
+  backdrop-filter: blur(40px) saturate(160%);
+}
+
+@utility os-shadow {
+  box-shadow: var(--os-shadow);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--os-text);
+  background: #000;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+[contenteditable] {
+  user-select: text;
+}
+
+/* While a window is dragged/resized, iframes must not swallow pointer events. */
+.os-interacting iframe {
+  pointer-events: none;
+}
+.os-interacting {
+  cursor: var(--os-cursor, default);
+}
+
+/* Thin, Windows-11-like scrollbars inside apps. */
+.os-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(128 128 128 / 0.5) transparent;
+}
+
+@keyframes os-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes os-boot-dot {
+  0% { transform: rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  60% { transform: rotate(360deg); opacity: 1; }
+  70%, 100% { transform: rotate(360deg); opacity: 0; }
+}

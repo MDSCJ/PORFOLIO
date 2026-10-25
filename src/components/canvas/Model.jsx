@@ -3,7 +3,8 @@ import { useGLTF } from '@react-three/drei'
 import PlaceholderAvatar from './PlaceholderAvatar'
 
 // Drop your model at public/model.glb. Until then (or if it fails to load) the placeholder renders.
-export const MODEL_URL = `${import.meta.env.BASE_URL}model.glb`
+// The portfolio page lives at /portfolio/, while public/ files are served from the site root.
+export const MODEL_URL = '../model.glb'
 
 function GLTFModel({ url }) {
   const { scene } = useGLTF(url)
